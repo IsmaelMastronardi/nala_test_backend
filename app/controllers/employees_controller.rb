@@ -1,4 +1,5 @@
 require 'pagy/extras/metadata'
+require 'pagy/extras/array' 
 
 class EmployeesController < ApplicationController
   include Pagy::Backend
@@ -18,8 +19,21 @@ class EmployeesController < ApplicationController
       @employees = @employees.where("email LIKE ?", "%#{params[:email]}%")
     end
 
-    @pagy, paginated_employees = pagy(@employees, items: 3)
-    render json: {employees: paginated_employees, pagy: { pages: @pagy.pages, current_page: @pagy.page }}
+    completed_employees = @employees.map do |employee|
+      {
+        id: employee.id,
+        name: employee.name,
+        email: employee.email,
+        days_absent: employee.days_absent,
+        days_requested: employee.days_requested
+      }
+    end
+  
+    @pagy, paginated_employees = pagy_array(completed_employees, items: 5)
+    render json: {
+      employees: paginated_employees,
+      pagy: { pages: @pagy.pages, current_page: @pagy.page
+      }}
   end
 
   # GET /employees/1
